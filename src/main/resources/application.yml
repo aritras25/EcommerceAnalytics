@@ -1,0 +1,54 @@
+server:
+  port: 8085
+  context-path: /ecommerce-analytics
+
+spring:
+  jackson:
+    mapper:
+      ACCEPT_CASE_INSENSITIVE_ENUMS: true
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+  # Redis connection (used by RedisMetricsRepository)
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+
+  # Kafka core settings
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
+    # Consumer-specific settings
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP:liftlab-analytics}
+      auto-offset-reset: ${KAFKA_CONSUMER_OFFSET_RESET:earliest}
+      # Consumer topic is configurable here
+      topic: ${KAFKA_CONSUMER_TOPIC:user_events}
+      concurrency: ${KAFKA_CONSUMER_CONCURRENCY:3}
+    dlq:
+      topic: ${KAFKA_DLT_TOPIC:events.DLT}
+
+    # Producer settings (defaults you can override via env)
+    producer:
+      acks: ${KAFKA_PRODUCER_ACKS:1}
+      linger-ms: ${KAFKA_PRODUCER_LINGER_MS:5}
+      batch-size: ${KAFKA_PRODUCER_BATCH_SIZE:16384}
+
+# Application-specific tuning
+analytics:
+  # in-memory token bucket rate limiter config
+  rate-limiter:
+    tokens-per-second: ${ANALYTICS_RATE_TOKENS_PER_SECOND:200}
+    bucket-size: ${ANALYTICS_RATE_BUCKET_SIZE:400}
+
+  # Mock producer (integrated scheduled publisher)
+  mock:
+    enabled: ${ANALYTICS_MOCK_ENABLED:true}   # set to true to enable
+    qps: ${ANALYTICS_MOCK_QPS:100}             # events per second
+    topic: ${ANALYTICS_MOCK_TOPIC:user_events}      # target topic to publish
+
+
+
+logging:
+  level:
+    root: INFO
